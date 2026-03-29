@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "transform:latest": "node scripts/transform-latest.mjs",
+    "promote": "node scripts/promote.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
