@@ -179,7 +179,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
           <b>Customer Problem / Why:</b> {opp.description?.trim() ? opp.description : (timeline ? timeline : 'Not documented')}
         </div>
         <div style={{ fontSize: 14, color: 'var(--text)', marginBottom: 8 }}>
-          <b>Current Status / Where:</b> {opp.stage}, {opp.probability}% probability, Forecast: {opp.forecastCategory || 'N/A'}, Close: {opp.closeDate}
+          <b>Current Status / Where:</b> {opp.stage}, {opp.probability}% probability, Forecast: {opp.forecastCategory || 'N/A'}, Rating: {opp.rating || 'N/A'}, Close: {opp.closeDate}
         </div>
         <div style={{ fontSize: 14, color: 'var(--text)', marginBottom: 8 }}>
           <b>Key Risk / Blocker:</b> {signals.length > 0 ? signals[0].label + ': ' + signals[0].explanation : 'No major risks flagged'}
@@ -239,7 +239,6 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
           // @ts-ignore
           const forecastCategory = (opp.forecastCategory || '').trim();
           // @ts-ignore
-          const rating = (opp.rating || '').trim();
           // @ts-ignore
           const nextStepDueDate = opp.nextStepDueDate;
           const probability = opp.probability;
