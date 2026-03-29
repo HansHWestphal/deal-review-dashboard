@@ -1,0 +1,11 @@
+OpportunityId,OpportunityName,AccountName,Value,Probability,Stage,CloseDate,Status
+OPP-001,Enterprise Cloud Migration,Acme Corp,250000,85,Proposal,2026-04-15,Open
+OPP-002,Digital Transformation Initiative,TechFlow Inc,180000,60,Needs Analysis,2026-05-30,Open
+OPP-003,Data Analytics Platform,Global Industries,150000,75,Demo,2026-04-05,Open
+OPP-004,AI Solution Implementation,Innovation Labs,220000,90,Proposal,2026-03-30,Open
+OPP-005,Security Audit & Implementation,Finance First,95000,50,Qualification,2026-06-15,Open
+OPP-006,Cloud Infrastructure Upgrade,Retail Dynamics,320000,70,Proposal,2026-04-20,Open
+OPP-007,Integration Services,HealthCare Plus,110000,40,Qualification,2026-07-10,Open
+OPP-008,Automation Framework,Manufacturing Corp,275000,80,Demo,2026-04-10,Open
+OPP-009,Compliance Management System,Legal Advisors LLC,85000,55,Needs Analysis,2026-05-20,Open
+OPP-010,Customer Portal Development,E-Commerce Solutions,165000,65,Demo,2026-05-05,Open
