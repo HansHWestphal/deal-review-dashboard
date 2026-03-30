@@ -36,3 +36,6 @@ node_modules/
 dist/
 .env
 .env.local
+
+# Private project notes
+Project-Snapshot-d365-personal-analytics-v2.docx
