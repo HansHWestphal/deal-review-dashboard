@@ -18,7 +18,7 @@ import './App.css';
 // Lifecycle filters are exploratory lenses; KPIs are computed from the canonical dataset per the Dashboard Semantics Contract.
 
 
-function DashboardPage({ data, dataSource }: { data: DashboardData, dataSource: string }) {
+function DashboardPage({ data, dataSource, showDebugPanel }: { data: DashboardData, dataSource: string, showDebugPanel: boolean }) {
   const [lifecycleFilter, setLifecycleFilter] = useState<{ open: boolean; won: boolean; lost: boolean }>({ open: true, won: false, lost: false });
 
   function filterOpportunitiesByLifecycleSet(opps: Opportunity[], filter: { open: boolean; won: boolean; lost: boolean }): Opportunity[] {
@@ -127,25 +127,27 @@ function DashboardPage({ data, dataSource }: { data: DashboardData, dataSource: 
           /> Lost
         </label>
       </div>
-      <div style={{ fontSize: '0.8em', color: '#888', marginBottom: 8, border: '1px solid #eee', padding: 6, borderRadius: 4 }}>
-        <div>Debug panel:</div>
-        <div>Data source: {dataSource}</div>
-        <div>Demo mode: {isDemoMode() ? 'true' : 'false'}</div>
-        <div>Total opportunities: {data.opportunities.length}</div>
-        <div>isWon true count: {data.opportunities.filter(o => o.isWon === true).length}</div>
-        <div>
-          <span>actualRevenue {'>'} 0 count: {data.opportunities.filter(o => o.actualRevenue > 0).length}</span>
+      {showDebugPanel && (
+        <div style={{ fontSize: '0.8em', color: '#888', marginBottom: 8, border: '1px solid #eee', padding: 6, borderRadius: 4 }}>
+          <div>Debug panel:</div>
+          <div>Data source: {dataSource}</div>
+          <div>Demo mode: {isDemoMode() ? 'true' : 'false'}</div>
+          <div>Total opportunities: {data.opportunities.length}</div>
+          <div>isWon true count: {data.opportunities.filter(o => o.isWon === true).length}</div>
+          <div>
+            <span>actualRevenue {'>'} 0 count: {data.opportunities.filter(o => o.actualRevenue > 0).length}</span>
+          </div>
+          <div>Lost count: {data.opportunities.filter(o => o.stage === 'Lost' || o.status === 'Lost' || (o.statusReason?.toLowerCase() === 'lost')).length}</div>
+          <div>Sample:</div>
+          <ul style={{ margin: 0, paddingLeft: 16 }}>
+            {data.opportunities.slice(0, 3).map((o, i) => (
+              <li key={i}>
+                {o.name} | actualRevenue: {o.actualRevenue} | isWon: {String(o.isWon)} | stage: {o.stage} | status: {o.status} | statusReason: {o.statusReason}
+              </li>
+            ))}
+          </ul>
         </div>
-        <div>Lost count: {data.opportunities.filter(o => o.stage === 'Lost' || o.status === 'Lost' || (o.statusReason?.toLowerCase() === 'lost')).length}</div>
-        <div>Sample:</div>
-        <ul style={{ margin: 0, paddingLeft: 16 }}>
-          {data.opportunities.slice(0, 3).map((o, i) => (
-            <li key={i}>
-              {o.name} | actualRevenue: {o.actualRevenue} | isWon: {String(o.isWon)} | stage: {o.stage} | status: {o.status} | statusReason: {o.statusReason}
-            </li>
-          ))}
-        </ul>
-      </div>
+      )}
       <h1 style={{
         color: '#003087',
         marginBottom: '24px',
@@ -219,6 +221,13 @@ function App() {
   const [data, setData] = useState<DashboardData>(sampleData);
   const [isLoading, setIsLoading] = useState(false);
   const [dataSource, setDataSource] = useState<string>('sampleData fallback');
+  const [showDebugPanel, setShowDebugPanel] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('d365pa:showDebugPanel') === '1';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     loadData();
@@ -241,16 +250,30 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
-      <header>
+      <header style={{ display: 'flex', alignItems: 'center' }}>
         <div className="alithya-logo">Alithya</div>
         <div style={{ marginLeft: 'auto', color: '#1F2937', fontSize: '14px', fontWeight: '500' }}>
           D365 Personal Command Center
+        </div>
+        <div style={{ marginLeft: 16 }}>
+          <label style={{ fontSize: '0.9em', color: '#666', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={showDebugPanel}
+              onChange={e => {
+                setShowDebugPanel(e.target.checked);
+                try { localStorage.setItem('d365pa:showDebugPanel', e.target.checked ? '1' : '0'); } catch {}
+              }}
+              style={{ marginRight: 4 }}
+            />
+            Show Debug
+          </label>
         </div>
       </header>
 
       <Banner onRefresh={loadData} isLoading={isLoading} />
       <Routes>
-        <Route path="/" element={<DashboardPage data={data} dataSource={dataSource} />} />
+        <Route path="/" element={<DashboardPage data={data} dataSource={dataSource} showDebugPanel={showDebugPanel} />} />
         <Route path="/opportunity/:id" element={<OpportunityDetails opportunities={data.opportunities} />} />
       </Routes>
     </div>
