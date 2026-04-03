@@ -1,18 +1,31 @@
-import type { DashboardData } from '../types';
+import type { DashboardData, Opportunity } from '../types';
 
 import { obfuscateDatasetForDemo } from '../utils/obfuscateDatasetForDemo';
 import { obfuscateAmountForDemo } from '../utils/obfuscateAmountForDemo';
 
-function isDemoMode(): boolean {
+export function isDemoMode(): boolean {
   if (typeof window !== 'undefined') {
-    if (window.location.hostname.includes('vercel.app')) return true;
-    if (window.location.hostname.includes('public-demo')) return true;
-    if (window.location.hostname === 'demo.local') return true;
-    if (import.meta.env && import.meta.env.VITE_PUBLIC_DEMO === 'true') return true;
+    if (window.location.hostname.includes('vercel.app')) {
+      console.log('[isDemoMode] TRUE: hostname includes vercel.app');
+      return true;
+    }
+    if (window.location.hostname.includes('public-demo')) {
+      console.log('[isDemoMode] TRUE: hostname includes public-demo');
+      return true;
+    }
+    if (window.location.hostname === 'demo.local') {
+      console.log('[isDemoMode] TRUE: hostname is demo.local');
+      return true;
+    }
+    if (import.meta.env && import.meta.env.VITE_PUBLIC_DEMO === 'true') {
+      console.log('[isDemoMode] TRUE: VITE_PUBLIC_DEMO env var is true');
+      return true;
+    }
   }
+  console.log('[isDemoMode] FALSE: none of the demo conditions matched');
   return false;
 }
-const rawOpportunities = [
+const rawOpportunities: Opportunity[] = [
   {
     id: 'OPP-001',
     name: 'Enterprise Cloud Migration',
@@ -170,7 +183,7 @@ const rawOpportunities = [
  * - Applies text/name/account obfuscation (obfuscateDatasetForDemo)
  * - Applies deterministic amount obfuscation per opp and field (obfuscateAmountForDemo)
  */
-const baseOpps = isDemoMode()
+const baseOpps: Opportunity[] = isDemoMode()
   ? obfuscateDatasetForDemo(rawOpportunities).map((o) => ({
       ...o,
       estimatedRevenue: obfuscateAmountForDemo(o.estimatedRevenue, `${o.id}:estimatedRevenue`),
@@ -183,10 +196,9 @@ export const sampleData: DashboardData = {
     ? obfuscateAmountForDemo(1000000, 'quotaTarget')
     : 1000000,
   weeklyActivities: (() => {
-    // Calculate number of opportunities modified in the last 7 days
     const now = new Date(isDemoMode() ? '2026-03-29T00:00:00.000Z' : Date.now());
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    return baseOpps.filter(o => new Date(o.modifiedOn) >= sevenDaysAgo).length;
+    return baseOpps.filter((o) => new Date(o.modifiedOn) >= sevenDaysAgo).length;
   })(),
   lastUpdated: isDemoMode() ? '2026-03-29T00:00:00.000Z' : new Date().toISOString(),
   opportunities: baseOpps,

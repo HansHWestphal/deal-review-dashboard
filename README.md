@@ -59,7 +59,7 @@ Strict production builds (npm run build) enforced
 
 ⚠️ Important clarification
 The current runtime data source for the app is a legacy Excel file:
-public/data/d365_opps_export.xlsx
+public/data/current.xlsx
 
 A structured D365 → transform → prod pipeline exists on disk, but is not yet wired into the UI. This is intentional and documented — data correctness is being validated deliberately, not assumed.
 

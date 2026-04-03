@@ -144,14 +144,14 @@ export function OpportunitiesTable({ opportunities }: OpportunitiesTableProps) {
                 }}>
                   <span style={{
                     display: 'inline-block',
-                    backgroundColor: `rgba(157, 194, 65, ${opp.probability / 100})`,
-                    color: opp.probability > 50 ? '#FFFFFF' : '#1F2937',
+                    backgroundColor: `rgba(157, 194, 65, ${opp.probability})`,
+                    color: opp.probability > 0.5 ? '#FFFFFF' : '#1F2937',
                     padding: '4px 10px',
                     borderRadius: '4px',
                     fontSize: '12px',
                     fontWeight: '600',
                   }}>
-                    {opp.probability}%
+                    {Math.round(opp.probability * 100)}%
                   </span>
                 </td>
                 <td style={{

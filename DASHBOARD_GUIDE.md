@@ -57,7 +57,7 @@
 
 - **Import Your Data:**  
   1. Export D365 opportunities to Excel with required columns.
-  2. Save as: `public/data/d365_opps_export.xlsx`
+  2. Save as: `public/data/current.xlsx`
   3. Click the **Refresh** button in the dashboard banner to load your data.
 
 - **Note:**  

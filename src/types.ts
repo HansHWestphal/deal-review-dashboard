@@ -1,5 +1,6 @@
 export interface Opportunity {
   id: string;
+  guid?: string;
   name: string;
   accountName: string;
   estimatedRevenue: number;
@@ -19,6 +20,11 @@ export interface Opportunity {
   contact?: string;
   rating?: string;
   forecastCategory?: string;
+  currentSituation?: string;
+  clientNeed?: string;
+  clientPainPoints?: string;
+  status?: string;
+  statusReason?: string;
 }
 
 export interface DashboardData {

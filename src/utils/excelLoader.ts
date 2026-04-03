@@ -1,5 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { Opportunity, DashboardData } from '../types';
+import { obfuscateDatasetForDemo } from './obfuscateDatasetForDemo';
+import { obfuscateAmountForDemo } from './obfuscateAmountForDemo';
 
 // Hard-coded quota for FY27
 const FY27_QUOTA = 5_000_000;
@@ -19,7 +21,7 @@ export async function loadExcelData(filePath: string): Promise<DashboardData> {
     
     const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[];
     
-    const opportunities = jsonData.map((row: Record<string, unknown>, index: number): Opportunity => {
+    let opportunities = jsonData.map((row: Record<string, unknown>, index: number): Opportunity => {
       // Parse dates from Excel columns (handles Excel serial numbers)
       const closeDate = parseDate(row['Close Date'] as string | number);
       const createdOn = parseDate(row['Created On'] as string | number);
@@ -40,13 +42,15 @@ export async function loadExcelData(filePath: string): Promise<DashboardData> {
       
       return {
         id: `OPP-${index + 1}`,
+        guid: (typeof row['GUID'] === 'string' ? row['GUID'] : String(row['GUID'] ?? '')).trim(),
         name: (row['Opportunity Name'] || '') as string,
         accountName: (row['Account Name'] || '') as string,
         estimatedRevenue,
         actualRevenue,
         probability: parseNumber(row['Probability']),
         stage,
-        closeDate,
+        // For Closed-Lost opportunities, Modified On is used as the loss date to reflect when work stopped.
+        closeDate: (String(row["Status"] ?? "").trim().toLowerCase() === 'lost') ? modifiedOn : closeDate,
         createdOn,
         modifiedOn,
         ageInDays,
@@ -56,14 +60,27 @@ export async function loadExcelData(filePath: string): Promise<DashboardData> {
         nextStep: (row['Next Step'] || '') as string,
         nextStepDueDate: parseDate(row['Next Step Due Date'] as string | number),
         timeline: (row['Timeline'] || '') as string,
+        currentSituation: (row['Current Situation'] || '') as string,
+        clientNeed: (row['Client Need'] || '') as string,
+        clientPainPoints: (row['Client Pain Points'] || '') as string,
         contact: (row['Contact'] || '') as string,
         rating: (row['Rating'] || '') as string,
         forecastCategory: (row['Forecast Category'] || '') as string,
+	status: String(row["Status"] ?? "").trim(),
+	statusReason: String(row["Status Reason"] ?? "").trim(),
       };
     });
     
+    // Obfuscate for public demo if needed
+    if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('public-demo') || window.location.hostname === 'demo.local' || (import.meta.env && import.meta.env.VITE_PUBLIC_DEMO === 'true'))) {
+      opportunities = obfuscateDatasetForDemo(opportunities);
+    }
+
     // Use hard-coded quota
-    const quotaTarget = FY27_QUOTA;
+    let quotaTarget = FY27_QUOTA;
+    if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('public-demo') || window.location.hostname === 'demo.local' || (import.meta.env && import.meta.env.VITE_PUBLIC_DEMO === 'true'))) {
+      quotaTarget = obfuscateAmountForDemo(FY27_QUOTA, 'quotaTarget');
+    }
     
     // Calculate weekly activities (opportunities modified in last 7 days)
     const today = new Date();

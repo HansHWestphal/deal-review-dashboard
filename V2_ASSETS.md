@@ -320,7 +320,7 @@ function App() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const excelData = await loadExcelData('/data/d365_opps_export.xlsx');
+      const excelData = await loadExcelData('/data/current.xlsx');
       setData(excelData);
     } catch (error) {
       console.log('Using sample data (Excel file not found or invalid):', error);

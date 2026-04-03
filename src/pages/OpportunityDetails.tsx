@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
+import { obfuscateForPublicDemo } from '../utils/obfuscateForPublicDemo';
 import type { Opportunity } from '../types';
 
 interface OpportunityDetailsProps {
@@ -80,7 +81,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
     }
     // Close Date Risk
     const closeDate = parseDateSafe(opp.closeDate);
-    if (closeDate && (closeDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) < 21 && opp.probability < 50) {
+    if (closeDate && (closeDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) < 21 && opp.probability < 0.5) {
       signals.push({
         label: 'Close Date Risk',
         color: '#f59e42',
@@ -88,7 +89,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
       });
     }
     // Late Stage / Low Confidence
-    if ((opp.stage === 'Proposal' || opp.stage === 'Close') && opp.probability < 40) {
+    if ((opp.stage === 'Proposal' || opp.stage === 'Close') && opp.probability < 0.4) {
       signals.push({
         label: 'Late Stage / Low Confidence',
         color: '#003087',
@@ -149,7 +150,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
     nbaHeadline = 'Schedule a discovery follow-up and define success criteria.';
   } else if (stage === 'Qualification' && !contact) {
     nbaHeadline = 'Identify the primary stakeholder or champion.';
-  } else if (stage === 'Develop' && probability < 40) {
+  } else if (stage === 'Develop' && probability < 0.4) {
     nbaHeadline = 'Validate problem impact and buying criteria; confirm decision timeline.';
   } else if (stage === 'Develop' && !timeline) {
     nbaHeadline = 'Confirm decision timeline and key milestones.';
@@ -334,7 +335,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
         <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 8 }}>
           Copy this prompt into M365 Copilot to get a manager-style risk review and close plan.
         </div>
-        <CopilotPrompt opp={opp} signals={signals} />
+        <CopilotPrompt opp={obfuscateForPublicDemo(opp)} signals={signals} />
       </div>
       {/* Header */}
       <div style={sectionStyle}>
@@ -344,7 +345,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
         </div>
         <div>
           <span style={badgeStyle('#003087')}>{opp.stage}</span>
-          <span style={badgeStyle('#9DC241', '#1F2937')}>{opp.probability}% Probability</span>
+          <span style={badgeStyle('#9DC241', '#1F2937')}>{Math.round(opp.probability * 100)}% Probability</span>
           {opp.isWon && <span style={badgeStyle('#2563eb')}>WON</span>}
         </div>
       </div>
@@ -377,6 +378,39 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
         <div style={valueStyle}>{opp.product}</div>
       </div>
 
+      {/* System of Record Link */}
+      {opp.guid && opp.guid.trim() && (
+        <div style={{ ...sectionStyle, background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 8, padding: 16, marginBottom: 24 }}>
+          <div style={{ ...labelStyle, marginBottom: 4 }}>System of Record</div>
+          <a
+            href={`https://alithyaone.crm.dynamics.com/main.aspx?forceUCI=1&pagetype=entityrecord&etn=opportunity&id=${opp.guid}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'underline', fontSize: 15 }}
+          >
+            Open in D365
+          </a>
+        </div>
+      )}
+      {/* Narrative Fields */}
+      {(opp.currentSituation && opp.currentSituation.trim()) && (
+        <div style={sectionStyle}>
+          <div style={labelStyle}>Current Situation</div>
+          <div style={{ ...valueStyle, whiteSpace: 'pre-line' }}>{opp.currentSituation}</div>
+        </div>
+      )}
+      {(opp.clientNeed && opp.clientNeed.trim()) && (
+        <div style={sectionStyle}>
+          <div style={labelStyle}>Client Need</div>
+          <div style={{ ...valueStyle, whiteSpace: 'pre-line' }}>{opp.clientNeed}</div>
+        </div>
+      )}
+      {(opp.clientPainPoints && opp.clientPainPoints.trim()) && (
+        <div style={sectionStyle}>
+          <div style={labelStyle}>Client Pain Points</div>
+          <div style={{ ...valueStyle, whiteSpace: 'pre-line' }}>{opp.clientPainPoints}</div>
+        </div>
+      )}
       <Link to="/" style={{ color: '#003087', textDecoration: 'underline', fontWeight: 600 }}>
         ← Back to Dashboard
       </Link>
@@ -397,7 +431,7 @@ Opportunity Name: ${safe(opp.name)}
 Account: ${safe(opp.accountName)}
 Product: ${safe(opp.product)}
 Sales Stage: ${safe(opp.stage)}
-Probability: ${safe(opp.probability)}
+Probability: ${Math.round(safe(opp.probability) * 100)}
 Forecast Category: ${safe(opp.forecastCategory)}
 Rating: ${safe(opp.rating)}
 Estimated Revenue (TCV): $${safe(opp.estimatedRevenue)}

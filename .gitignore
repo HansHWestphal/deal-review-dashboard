@@ -42,6 +42,12 @@ Project-Snapshot-d365-personal-analytics-v2.docx
 
 
 # --- Sensitive D365 exports (contain Alithya PII) ---
+public/inbox/*.xlsx
+public/inbox/*.csv
+public/data/current.xlsx
+public/data/current.meta.json
 public/data/d365_opps_export.xlsx
 public/data/d365_opps_export-old.xlsx
+# Do NOT ignore the schema/template file:
+!public/data/d365_opps_weekly_canonical_schema.xlsx
 

@@ -21,7 +21,7 @@ export function Banner({ onRefresh, isLoading }: BannerProps) {
         <div style={{ color: 'white', fontSize: '13px' }}>
           <strong>D365 Export Instructions:</strong> Export opportunities with columns: Opportunity Name, Estimated Revenue, Close Date, Sales Stage, Probability, Actual Revenue, Created On, Modified On, Account Name, Product. Save as Excel in{' '}
           <code style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '2px 4px', borderRadius: '2px' }}>
-            public/data/d365_opps_export.xlsx
+            public/data/current.xlsx
           </code>
         </div>
       </div>
