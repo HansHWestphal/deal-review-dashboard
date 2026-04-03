@@ -38,4 +38,10 @@ dist/
 .env.local
 
 # Private project notes
-Project-Snapshot-d365-personal-analytics-v2.docxProject-Snapshot-d365-personal-analytics-v2.docx
+Project-Snapshot-d365-personal-analytics-v2.docx
+
+
+# --- Sensitive D365 exports (contain Alithya PII) ---
+public/data/d365_opps_export.xlsx
+public/data/d365_opps_export-old.xlsx
+
