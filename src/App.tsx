@@ -25,14 +25,31 @@ function DashboardPage({ data, dataSource }: { data: DashboardData, dataSource: 
     // Lifecycle filters are exploratory lenses; KPIs are computed from the canonical dataset per the Dashboard Semantics Contract.
     const selected = Object.entries(filter).filter(([, v]) => v).map(([k]) => k);
     if (selected.length === 0) return [];
-    return opps.filter(o => {
-
-      // Align with loader: isWon is the canonical win indicator
+    // Instrumentation: count and sample before filtering
+    const isOpenArr = opps.filter(o => !o.isWon && !(o.stage === 'Lost' || o.status === 'Lost' || o.statusReason?.toLowerCase() === 'lost'));
+    const isWonArr = opps.filter(o => o.isWon === true);
+    const isLostArr = opps.filter(o => o.stage === 'Lost' || o.status === 'Lost' || o.statusReason?.toLowerCase() === 'lost');
+    console.log('[Lifecycle Instrumentation] Pre-filter:', {
+      total: opps.length,
+      isOpen: isOpenArr.length,
+      isWon: isWonArr.length,
+      isLost: isLostArr.length,
+      wonSample: isWonArr.slice(0, 3).map(o => ({ id: o.id, name: o.name })),
+    });
+    const filtered = opps.filter(o => {
       const isWon = o.isWon === true;
       const isLost = o.stage === 'Lost' || o.status === 'Lost' || o.statusReason?.toLowerCase() === 'lost';
       const isOpen = !isWon && !isLost;
       return (filter.open && isOpen) || (filter.won && isWon) || (filter.lost && isLost);
     });
+    // Instrumentation: count and sample after filtering
+    const filteredWon = filtered.filter(o => o.isWon === true);
+    console.log('[Lifecycle Instrumentation] Post-filter:', {
+      total: filtered.length,
+      won: filteredWon.length,
+      wonSample: filteredWon.slice(0, 3).map(o => ({ id: o.id, name: o.name })),
+    });
+    return filtered;
   }
 
   const filteredOpps = filterOpportunitiesByLifecycleSet(data.opportunities, lifecycleFilter);

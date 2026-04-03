@@ -15,9 +15,10 @@ export function OpportunitiesTable({ opportunities }: OpportunitiesTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   // Only show open opportunities, sorted
-  const openOpps = opportunities.filter(o => !o.isWon);
-  
-  const sorted = [...openOpps].sort((a, b) => {
+  // PATCH: Remove open-only filter, use all passed opportunities (already filtered by lifecycle in App)
+  const visibleOpps = opportunities;
+
+  const sorted = [...visibleOpps].sort((a, b) => {
     let aVal: string | number = '';
     let bVal: string | number = '';
 
@@ -107,6 +108,8 @@ export function OpportunitiesTable({ opportunities }: OpportunitiesTableProps) {
             </tr>
           </thead>
           <tbody>
+            {/* Instrumentation: log visible won opps before render */}
+            {(() => { const won = sorted.filter(o => o.isWon); if (won.length) console.log('[OpportunitiesTable] Rendering won:', won.map(o => ({ id: o.id, name: o.name }))); return null; })()}
             {sorted.map((opp, idx) => (
               <tr key={opp.id} style={{
                 borderBottom: '1px solid var(--border)',
