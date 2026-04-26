@@ -8,8 +8,11 @@ const INBOX_DIR = path.resolve('public/inbox');
 const OUT_XLSX = path.resolve('public/data/current.xlsx');
 const OUT_META = path.resolve('public/data/current.meta.json');
 
-const RAW_PREFIX = 'Hans FY27 Opp Tracker';
 const RAW_EXT = '.xlsx';
+const RAW_FILE_PATTERNS = [
+  /^Hans FY\s*\d+\s+Opp Tracker(?: .*)?\.xlsx$/i,
+  /^Hans FY\s*\d+\s+Open Opps(?: .*)?\.xlsx$/i,
+];
 
 const RAW_TO_TARGET = {
   'Topic': 'Opportunity Name',
@@ -42,14 +45,22 @@ const TARGET_COLUMNS = [
   'Product', 'Forecast Category', 'Actual Revenue', 'Status', 'Status Reason',
 ];
 
-function findLatestFile() {
-  const files = fs.readdirSync(INBOX_DIR)
-    .filter(f => f.startsWith(RAW_PREFIX) && f.endsWith(RAW_EXT))
+function listInboxFiles() {
+  return fs.readdirSync(INBOX_DIR)
+    .filter(f => f.toLowerCase().endsWith(RAW_EXT))
     .map(f => ({
       name: f,
       mtime: fs.statSync(path.join(INBOX_DIR, f)).mtimeMs
     }))
     .sort((a, b) => b.mtime - a.mtime);
+}
+
+function isSupportedRawFile(fileName) {
+  return RAW_FILE_PATTERNS.some(pattern => pattern.test(fileName));
+}
+
+function findLatestFile() {
+  const files = listInboxFiles().filter(file => isSupportedRawFile(file.name));
   return files[0]?.name;
 }
 
@@ -70,7 +81,14 @@ function computeProbability(row) {
 function main() {
   const latest = findLatestFile();
   if (!latest) {
-    console.error('No matching D365 export found in public/inbox');
+    const availableFiles = listInboxFiles().map(file => file.name);
+    const supportedExamples = [
+      'Hans FY27 Opp Tracker ...xlsx',
+      'Hans FY 27 Open Opps ...xlsx',
+    ];
+    console.error(
+      `No matching D365 export found in public/inbox. Supported filenames look like ${supportedExamples.join(' or ')}. Found: ${availableFiles.length ? availableFiles.join(', ') : 'no .xlsx files'}`,
+    );
     process.exit(1);
   }
   const srcPath = path.join(INBOX_DIR, latest);
