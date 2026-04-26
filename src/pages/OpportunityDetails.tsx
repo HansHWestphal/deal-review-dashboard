@@ -70,8 +70,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
       });
     }
     // Next Step Overdue
-    // @ts-ignore: nextStepDueDate may not exist on type
-    const nextStepDue = parseDateSafe((opp as any).nextStepDueDate);
+    const nextStepDue = parseDateSafe(opp.nextStepDueDate);
     if (nextStepDue && nextStepDue < today) {
       signals.push({
         label: 'Next Step Overdue',
@@ -97,8 +96,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
       });
     }
     // No Next Step
-    // @ts-ignore: nextStep may not exist on type
-    const nextStep = ((opp as any).nextStep || '').trim();
+    const nextStep = (opp.nextStep || '').trim();
     if (!nextStep || nextStep.toLowerCase() === 'n/a') {
       signals.push({
         label: 'No Next Step',
@@ -107,8 +105,7 @@ const OpportunityDetails: React.FC<OpportunityDetailsProps> = ({ opportunities }
       });
     }
     // No Primary Contact
-    // @ts-ignore: contact may not exist on type
-    const contact = ((opp as any).contact || '').trim();
+    const contact = (opp.contact || '').trim();
     if (!contact || contact.toLowerCase() === 'n/a') {
       signals.push({
         label: 'No Primary Contact',

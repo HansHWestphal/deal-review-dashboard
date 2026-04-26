@@ -111,15 +111,20 @@ function main() {
     throw new Error(`Missing required columns in source: ${missing.join(', ')}`);
   }
 
-  function toIsoDate(value) {
+  function toExcelDateValue(value, { includeTime = false } = {}) {
     if (value == null || value === '') return '';
     if (typeof value === 'number') {
-      // Excel serial date to UTC YYYY-MM-DD
+      // Excel serial date to UTC ISO string
       const utc = new Date(Math.round((value - 25569) * 86400 * 1000));
-      return utc.toISOString().split('T')[0];
+      return includeTime ? utc.toISOString() : utc.toISOString().split('T')[0];
     }
-    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value;
-    return value;
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        return includeTime ? parsed.toISOString() : parsed.toISOString().split('T')[0];
+      }
+    }
+    return String(value);
   }
 
   // Filter out rows where Status == "Lost" AND (Forecast Category begins with "0%" OR Status Reason equals "Error/duplicate")
@@ -145,7 +150,7 @@ function main() {
       if ([
         'Next Step Due Date', 'Close Date', 'Created On', 'Modified On'
       ].includes(target)) {
-        out[target] = toIsoDate(row[raw]);
+        out[target] = toExcelDateValue(row[raw], { includeTime: target === 'Modified On' });
       } else {
         out[target] = row[raw] ?? '';
       }

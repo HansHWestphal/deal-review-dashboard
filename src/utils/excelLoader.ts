@@ -25,7 +25,8 @@ export async function loadExcelData(filePath: string): Promise<DashboardData> {
       // Parse dates from Excel columns (handles Excel serial numbers)
       const closeDate = parseDate(row['Close Date'] as string | number);
       const createdOn = parseDate(row['Created On'] as string | number);
-      const modifiedOn = parseDate(row['Modified On'] as string | number);
+      const modifiedOnDate = parseDate(row['Modified On'] as string | number);
+      const modifiedOn = parseDateTime(row['Modified On'] as string | number);
       
       // Calculate age in days since Modified On (>60 days = aging deal)
       const ageInDays = calculateDaysSince(modifiedOn);
@@ -44,13 +45,13 @@ export async function loadExcelData(filePath: string): Promise<DashboardData> {
         id: `OPP-${index + 1}`,
         guid: (typeof row['GUID'] === 'string' ? row['GUID'] : String(row['GUID'] ?? '')).trim(),
         name: (row['Opportunity Name'] || '') as string,
-        accountName: (row['Account Name'] || '') as string,
+        accountName: (row['Account Name'] || row['Account'] || '') as string,
         estimatedRevenue,
         actualRevenue,
         probability: parseNumber(row['Probability']),
         stage,
         // For Closed-Lost opportunities, Modified On is used as the loss date to reflect when work stopped.
-        closeDate: (String(row["Status"] ?? "").trim().toLowerCase() === 'lost') ? modifiedOn : closeDate,
+        closeDate: (String(row["Status"] ?? "").trim().toLowerCase() === 'lost') ? modifiedOnDate : closeDate,
         createdOn,
         modifiedOn,
         ageInDays,
@@ -86,8 +87,11 @@ export async function loadExcelData(filePath: string): Promise<DashboardData> {
     const today = new Date();
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const weeklyActivities = opportunities.filter(o => {
+      if (!o.modifiedOn) {
+        return false;
+      }
       const modDate = new Date(o.modifiedOn);
-      return modDate >= sevenDaysAgo;
+      return !Number.isNaN(modDate.getTime()) && modDate >= sevenDaysAgo;
     }).length;
     
     const totalEstimated = opportunities.reduce((sum, o) => sum + o.estimatedRevenue, 0);
@@ -111,7 +115,7 @@ export async function loadExcelData(filePath: string): Promise<DashboardData> {
 }
 
 function parseDate(dateValue: string | number | undefined): string {
-  if (!dateValue) return new Date().toISOString().split('T')[0];
+  if (dateValue == null || dateValue === '') return '';
   
   if (typeof dateValue === 'number') {
     // Excel date serial number (days since 1900-01-01)
@@ -129,7 +133,24 @@ function parseDate(dateValue: string | number | undefined): string {
     }
   }
   
-  return new Date().toISOString().split('T')[0];
+  return '';
+}
+
+function parseDateTime(dateValue: string | number | undefined): string {
+  if (dateValue == null || dateValue === '') return '';
+
+  if (typeof dateValue === 'number') {
+    return new Date((dateValue - 25569) * 86400 * 1000).toISOString();
+  }
+
+  if (typeof dateValue === 'string') {
+    const parsed = new Date(dateValue);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+
+  return '';
 }
 
 function parseNumber(value: unknown): number {
@@ -142,21 +163,25 @@ function parseNumber(value: unknown): number {
 }
 
 function calculateDaysSince(dateString: string): number {
-  try {
-    const targetDate = new Date(dateString);
-    const today = new Date();
-    
-    // Set both to midnight for accurate day calculation
-    targetDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    
-    const timeDiff = today.getTime() - targetDate.getTime();
-    const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
-    
-    return Math.max(0, daysDiff);
-  } catch {
+  if (!dateString) {
     return 0;
   }
+
+  const targetDate = new Date(dateString);
+  if (isNaN(targetDate.getTime())) {
+    return 0;
+  }
+
+  const today = new Date();
+  
+  // Set both to midnight for accurate day calculation
+  targetDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  
+  const timeDiff = today.getTime() - targetDate.getTime();
+  const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+  
+  return Math.max(0, daysDiff);
 }
 
 function normalizeStage(stage: string): string {
